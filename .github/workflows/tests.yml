@@ -1,0 +1,42 @@
+# https://docs.astral.sh/uv/guides/integration/github/#setting-up-python
+name: Tests
+
+on:
+ push
+
+jobs:
+
+  python:
+    name: python tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.7.4"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        run: uv run pytest tests
+
+      - name: Run notebooks
+        run: |
+          uv run jupyter execute notebooks/0-free-particle.ipynb
+          uv run jupyter execute notebooks/1-particle-central-potential.ipynb
+          uv run jupyter execute notebooks/2-particle-dome-paradox.ipynb
+          uv run jupyter execute notebooks/3-double-pendulum.ipynb
+          uv run jupyter execute notebooks/4-charged-particle-in-magnetic-field.ipynb
